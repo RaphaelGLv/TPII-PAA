@@ -188,7 +188,7 @@ def exibir_solucao(solucao):
 def main_B_And_B():
     # Menu principal
     while True:
-        print("\nMenu Principal:")
+        print("\nMenu Branch and Bound:")
         print("1. Usar uma matriz já pronta")
         print("2. Criar uma nova matriz")
         print("3. Sair")

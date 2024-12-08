@@ -149,7 +149,7 @@ def main_huffman():
     Menu principal para execução do algoritmo de Huffman.
     """
     while True:
-        print("\nMenu Huffman:")
+        print("\nMenu Codificação de Huffman:")
         print("1. Usar dados pré-definidos")
         print("2. Inserir dados manualmente")
         print("3. Sair")
