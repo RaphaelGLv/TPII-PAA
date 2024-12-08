@@ -245,5 +245,3 @@ def menu_execucao(matriz):
         else:
             print("Opção inválida. Tente novamente.")
 
-if __name__ == "__main__":
-    main_B_And_B()
