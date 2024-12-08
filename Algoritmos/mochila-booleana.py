@@ -2,9 +2,6 @@ class Item :
     def __init__(self, peso, valor):
         self.peso = peso
         self.valor = valor
-    
-    def __str__(self):
-        return f'Item({self.peso}, {self.valor})'
 
 def gerar_itens_aleatorios(tamanho):
     from random import randint
