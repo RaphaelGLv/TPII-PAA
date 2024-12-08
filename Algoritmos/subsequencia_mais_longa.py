@@ -54,3 +54,10 @@ class LCS:
         # A subsequência está em ordem reversa, então inverte antes de retornar
         subsequencia.reverse()
         return subsequencia
+    
+def main():
+    seq1 = input("Digite a primeira sequência: ")
+    seq2 = input("Digite a segunda sequência: ")
+
+    subsequencia = LCS.obter_subsequencia_mais_longa(seq1, seq2)
+    print(f"A subsequência mais longa é: {''.join(subsequencia)} com tamanho {len(subsequencia)}")
