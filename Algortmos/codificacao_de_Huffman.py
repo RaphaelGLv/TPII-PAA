@@ -1,73 +1,175 @@
 import heapq
-from collections import defaultdict
-
-# Passo 1: Contagem das frequências dos caracteres
-def calcular_frequencias(texto):
-    frequencias = defaultdict(int)
-    for char in texto:
-        frequencias[char] += 1
-    return frequencias
-
-# Passo 2: Criação de uma árvore de Huffman
-def construir_arvore_huffman(frequencias):
-    # Criando uma lista de nós (heap) com as frequências
-    heap = [[peso, [caractere, ""]] for caractere, peso in frequencias.items()]
-    heapq.heapify(heap)
-
-    while len(heap) > 1:
-        # Pegando os dois nós com menores frequências
-        baixo = heapq.heappop(heap)
-        alto = heapq.heappop(heap)
+from collections import Counter
+class Node:
+    def __init__(self, freq, symbol, left=None, right=None):
+        """
+        Representa um nó da árvore de Huffman.
         
-        # Criando um novo nó com a soma das frequências
-        for par in baixo[1:]:
-            par[1] = '0' + par[1]
-        for par in alto[1:]:
-            par[1] = '1' + par[1]
+        Args:
+            freq (int): Frequência do símbolo.
+            symbol (str): Símbolo (caractere).
+            left (Node, opcional): Nó filho à esquerda.
+            right (Node, opcional): Nó filho à direita.
+        """
+        self.freq = freq
+        self.symbol = symbol
+        self.left = left
+        self.right = right
+        self.huff = ''  # Direção no código (0 ou 1)
 
-        # Inserindo o novo nó de volta no heap
-        nova_frequencia = baixo[0] + alto[0]
-        heapq.heappush(heap, [nova_frequencia, baixo[1] + alto[1]])
+    def __lt__(self, other):
+        return self.freq < other.freq
 
-    # O último nó contém a árvore completa
-    # A árvore de Huffman está agora na forma de uma lista de listas [[peso, [caractere, código]]]
-    # Precisamos extrair os pares (caractere, código) corretamente
-    arvore_huffman = heap[0][1]
-    return [(caractere, codigo) for caractere, codigo in arvore_huffman]
 
-# Passo 3: Codificação do texto
-def codificar_texto(texto, codigos):
-    return ''.join(codigos[caractere] for caractere in texto)
+def criar_nos(chars, freq):
+    """
+    Cria uma lista de nós a partir dos caracteres e suas frequências.
 
-# Passo 4: Função principal para executar a codificação
-def huffman_compressao(texto):
-    # Passo 1: Contar as frequências dos caracteres
-    frequencias = calcular_frequencias(texto)
+    Args:
+        chars (list): Lista de caracteres.
+        freq (list): Lista de frequências correspondentes.
 
-    # Passo 2: Construir a árvore de Huffman
-    arvore_huffman = construir_arvore_huffman(frequencias)
+    Returns:
+        list: Nós para construção da árvore.
+    """
+    return [Node(freq[i], chars[i]) for i in range(len(chars))]
 
-    # Passo 3: Criar um dicionário de códigos a partir da árvore
-    codigos = {caractere: codigo for caractere, codigo in arvore_huffman}
 
-    # Passo 4: Codificar o texto
-    texto_codificado = codificar_texto(texto, codigos)
+def construir_arvore(nodes):
+    """
+    Constrói a árvore de Huffman a partir dos nós.
 
-    return texto_codificado, codigos
+    Args:
+        nodes (list): Lista de nós (min-heap).
 
-# Função main para testar o código
-def main():
-    texto = input("Digite o texto para compressão: ")
+    Returns:
+        Node: Raiz da árvore de Huffman.
+    """
+    heapq.heapify(nodes)
+
+    while len(nodes) > 1:
+        # Remove os dois nós com menor frequência
+        left = heapq.heappop(nodes)
+        right = heapq.heappop(nodes)
+
+        # Atribui direções aos nós
+        left.huff = 0
+        right.huff = 1
+
+        # Cria um novo nó pai combinando os dois
+        new_node = Node(left.freq + right.freq, left.symbol + right.symbol, left, right)
+        heapq.heappush(nodes, new_node)
+
+    return nodes[0]  # Raiz da árvore
+
+
+def exibir_codigos_huffman(node, val='', codigos=None):
+    """
+    Gera e exibe os códigos de Huffman para cada símbolo.
+
+    Args:
+        node (Node): Raiz da árvore de Huffman.
+        val (str, opcional): Código de Huffman acumulado.
+        codigos (dict, opcional): Dicionário para armazenar os códigos.
+
+    Returns:
+        dict: Dicionário com os códigos de Huffman.
+    """
+    if codigos is None:
+        codigos = {}
+
+    new_val = val + str(node.huff)
+
+    if node.left:
+        exibir_codigos_huffman(node.left, new_val, codigos)
+    if node.right:
+        exibir_codigos_huffman(node.right, new_val, codigos)
+
+    if not node.left and not node.right:
+        codigos[node.symbol] = new_val
+        print(f"{node.symbol} -> {new_val}")
+
+    return codigos
+
+
+def executar_huffman(chars, freq):
+    """
+    Executa o algoritmo de Huffman com os dados fornecidos.
+
+    Args:
+        chars (list): Lista de caracteres.
+        freq (list): Lista de frequências correspondentes.
+    """
+    print("\nConstruindo a árvore de Huffman...")
+    nodes = criar_nos(chars, freq)
+    raiz = construir_arvore(nodes)
+
+    print("\nCódigos de Huffman gerados:")
+    exibir_codigos_huffman(raiz)
+
+
+def calcular_frequencias(texto):
+    """
+    Calcula a frequência de cada caractere em uma string.
+
+    Args:
+        texto (str): A string de entrada para calcular frequências.
+
+    Returns:
+        tuple: Uma tupla contendo:
+            - chars (list): Lista de caracteres únicos.
+            - freq (list): Lista de frequências correspondentes.
+    """
+    texto = texto.replace(" ", "")  #Remove espaços da string
+
+    # Usa Counter para contar a frequencia dos caracteres
+    contador = Counter(texto)
     
-    # Passo 4: Executar a compressão usando Huffman
-    texto_codificado, codigos = huffman_compressao(texto)
+    # Separa os caracteres e suas frequências
+    chars = list(contador.keys())
+    freq = list(contador.values())
     
-    # Exibir os resultados
-    print("\nTexto original:", texto)
-    print("Texto codificado:", texto_codificado)
-    print("\nCódigos de Huffman:")
-    for caractere, codigo in codigos.items():
-        print(f"{caractere}: {codigo}")
+    return chars, freq
 
-if __name__ == "__main__":
-    main()
+# Exemplo de uso
+texto = "huffman algorithm example"
+chars, freq = calcular_frequencias(texto.replace(" ", ""))  # Remove espaços para não contá-los
+
+def aux_uso(texto):
+    print(f'Frase utilizada: "{texto}"')
+    chars, freq = calcular_frequencias(texto)
+    print("Caracteres:", chars)
+    print("Frequências:", freq)
+    executar_huffman(chars, freq)
+
+
+
+def main_huffman():
+    """
+    Menu principal para execução do algoritmo de Huffman.
+    """
+    while True:
+        print("\nMenu Huffman:")
+        print("1. Usar dados pré-definidos")
+        print("2. Inserir dados manualmente")
+        print("3. Sair")
+
+        opcao = input("Escolha uma opção (1, 2 ou 3): ")
+
+        if opcao == "1":
+            # Dados pré-definidos
+            texto = "exemplo de uso da codificacao de Huffman"
+            aux_uso(texto)
+
+        elif opcao == "2":
+            # Inserir frase manualmente
+            texto = input("Digite uma frase para calcular as frequências: ")
+            aux_uso(texto)
+        elif opcao == "3":
+            print("Saindo...")
+            break
+        else:
+            print("Opção inválida. Tente novamente.")
+
+
+
